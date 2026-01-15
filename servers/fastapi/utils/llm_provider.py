@@ -13,6 +13,7 @@ from utils.get_env import (
     get_llm_provider_env,
     get_ollama_model_env,
     get_openai_model_env,
+    get_opencode_model_env,
 )
 
 
@@ -22,7 +23,7 @@ def get_llm_provider():
     except:
         raise HTTPException(
             status_code=500,
-            detail=f"Invalid LLM provider. Please select one of: openai, google, anthropic, ollama, custom",
+            detail=f"Invalid LLM provider. Please select one of: openai, google, anthropic, ollama, custom, opencode",
         )
 
 
@@ -46,6 +47,10 @@ def is_custom_llm_selected():
     return get_llm_provider() == LLMProvider.CUSTOM
 
 
+def is_opencode_selected():
+    return get_llm_provider() == LLMProvider.OPENCODE
+
+
 def get_model():
     selected_llm = get_llm_provider()
     if selected_llm == LLMProvider.OPENAI:
@@ -58,8 +63,10 @@ def get_model():
         return get_ollama_model_env()
     elif selected_llm == LLMProvider.CUSTOM:
         return get_custom_model_env()
+    elif selected_llm == LLMProvider.OPENCODE:
+        return get_opencode_model_env() or "gpt-5-mini"
     else:
         raise HTTPException(
             status_code=500,
-            detail=f"Invalid LLM provider. Please select one of: openai, google, anthropic, ollama, custom",
+            detail=f"Invalid LLM provider. Please select one of: openai, google, anthropic, ollama, custom, opencode",
         )

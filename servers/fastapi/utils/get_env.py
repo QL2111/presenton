@@ -117,3 +117,20 @@ def get_dall_e_3_quality_env():
 # Gpt Image 1.5 Quality
 def get_gpt_image_1_5_quality_env():
     return os.getenv("GPT_IMAGE_1_5_QUALITY")
+
+
+# OpenCode
+def get_opencode_url_env():
+    return os.getenv("OPENCODE_URL")
+
+
+def get_opencode_session_id_env():
+    return os.getenv("OPENCODE_SESSION_ID")
+
+
+def get_opencode_model_env():
+    return os.getenv("OPENCODE_MODEL")
+
+
+def get_opencode_api_key_env():
+    return os.getenv("OPENCODE_API_KEY")

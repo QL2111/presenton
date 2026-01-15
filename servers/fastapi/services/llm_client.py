@@ -1,6 +1,7 @@
 import asyncio
 import dirtyjson
 import json
+import httpx
 from typing import AsyncGenerator, List, Optional
 from fastapi import HTTPException
 from openai import AsyncOpenAI
@@ -52,6 +53,9 @@ from utils.get_env import (
     get_openai_api_key_env,
     get_tool_calls_env,
     get_web_grounding_env,
+    get_opencode_url_env,
+    get_opencode_session_id_env,
+    get_opencode_api_key_env,
 )
 from utils.llm_provider import get_llm_provider, get_model
 from utils.parsers import parse_bool_or_none
@@ -67,6 +71,8 @@ class LLMClient:
         self.llm_provider = get_llm_provider()
         self._client = self._get_client()
         self.tool_calls_handler = LLMToolCallsHandler(self)
+        # Client HTTP pour OpenCode
+        self._opencode_client = httpx.AsyncClient(timeout=300.0)
 
     # ? Use tool calls
     def use_tool_calls_for_structured_output(self) -> bool:
@@ -100,10 +106,12 @@ class LLMClient:
                 return self._get_ollama_client()
             case LLMProvider.CUSTOM:
                 return self._get_custom_client()
+            case LLMProvider.OPENCODE:
+                return self._get_opencode_client()
             case _:
                 raise HTTPException(
                     status_code=400,
-                    detail="LLM Provider must be either openai, google, anthropic, ollama, or custom",
+                    detail="LLM Provider must be either openai, google, anthropic, ollama, custom, or opencode",
                 )
 
     def _get_openai_client(self):
@@ -146,6 +154,19 @@ class LLMClient:
             base_url=get_custom_llm_url_env(),
             api_key=get_custom_llm_api_key_env() or "null",
         )
+
+    def _get_opencode_client(self):
+        if not get_opencode_url_env():
+            raise HTTPException(
+                status_code=400,
+                detail="OpenCode URL is not set (OPENCODE_URL)",
+            )
+        if not get_opencode_session_id_env():
+            raise HTTPException(
+                status_code=400,
+                detail="OpenCode Session ID is not set (OPENCODE_SESSION_ID)",
+            )
+        return None  # On utilise httpx directement
 
     # ? Prompts
     def _get_system_prompt(self, messages: List[LLMMessage]) -> str:
@@ -401,6 +422,76 @@ class LLMClient:
             depth=depth,
         )
 
+    # ========== OPENCODE METHODS ==========
+
+    def _build_opencode_messages(self, messages: List[LLMMessage]) -> List[dict]:
+        """Convertit les messages LLM au format OpenCode (parts)"""
+        parts = []
+        system_prompt = self._get_system_prompt(messages)
+
+        if system_prompt:
+            parts.append(
+                {
+                    "type": "text",
+                    "text": f"[System Instructions]\n{system_prompt}\n[End System Instructions]\n\n",
+                }
+            )
+
+        for message in messages:
+            if isinstance(message, LLMSystemMessage):
+                continue  # Déjà traité
+            elif isinstance(message, LLMUserMessage):
+                parts.append({"type": "text", "text": f"User: {message.content}"})
+            elif isinstance(
+                message,
+                (
+                    OpenAIAssistantMessage,
+                    AnthropicAssistantMessage,
+                    GoogleAssistantMessage,
+                ),
+            ):
+                content = getattr(message, "content", None)
+                if content and isinstance(content, str):
+                    parts.append({"type": "text", "text": f"Assistant: {content}"})
+
+        return parts
+
+    async def _generate_opencode(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        max_tokens: Optional[int] = None,
+        depth: int = 0,
+    ) -> str | None:
+        url = (
+            f"{get_opencode_url_env()}/session/{get_opencode_session_id_env()}/message"
+        )
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {get_opencode_api_key_env() or 'sudo'}",
+        }
+
+        payload = {
+            "model": {"providerID": "github-copilot", "modelID": model},
+            "agent": "general",
+            "parts": self._build_opencode_messages(messages),
+        }
+
+        response = await self._opencode_client.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+
+        data = response.json()
+
+        # Extraire le texte de la réponse OpenCode
+        text_parts = [
+            p["text"] for p in data.get("parts", []) if p.get("type") == "text"
+        ]
+
+        if text_parts:
+            return "".join(text_parts)
+        return None
+
     async def generate(
         self,
         model: str,
@@ -439,6 +530,10 @@ class LLMClient:
                 )
             case LLMProvider.CUSTOM:
                 content = await self._generate_custom(
+                    model=model, messages=messages, max_tokens=max_tokens
+                )
+            case LLMProvider.OPENCODE:
+                content = await self._generate_opencode(
                     model=model, messages=messages, max_tokens=max_tokens
                 )
         if content is None:
@@ -773,6 +868,47 @@ class LLMClient:
             depth=depth,
         )
 
+    async def _generate_opencode_structured(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        response_format: dict,
+        strict: bool = False,
+        max_tokens: Optional[int] = None,
+        depth: int = 0,
+    ) -> dict | None:
+        # Ajouter une instruction pour forcer le JSON
+        json_instruction = LLMUserMessage(
+            role="user",
+            content=f"""IMPORTANT: You MUST respond with ONLY valid JSON matching this schema, no other text:
+{json.dumps(response_format, indent=2)}
+
+Respond with the JSON object only, no markdown, no explanation.""",
+        )
+
+        augmented_messages = [*messages, json_instruction]
+
+        result = await self._generate_opencode(
+            model=model,
+            messages=augmented_messages,
+            max_tokens=max_tokens,
+            depth=depth,
+        )
+
+        if result:
+            # Nettoyer le résultat (enlever les backticks markdown si présents)
+            cleaned = result.strip()
+            if cleaned.startswith("```json"):
+                cleaned = cleaned[7:]
+            if cleaned.startswith("```"):
+                cleaned = cleaned[3:]
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3]
+            cleaned = cleaned.strip()
+
+            return dict(dirtyjson.loads(cleaned))
+        return None
+
     async def generate_structured(
         self,
         model: str,
@@ -821,6 +957,14 @@ class LLMClient:
                 )
             case LLMProvider.CUSTOM:
                 content = await self._generate_custom_structured(
+                    model=model,
+                    messages=messages,
+                    response_format=response_format,
+                    strict=strict,
+                    max_tokens=max_tokens,
+                )
+            case LLMProvider.OPENCODE:
+                content = await self._generate_opencode_structured(
                     model=model,
                     messages=messages,
                     response_format=response_format,
@@ -1095,6 +1239,26 @@ class LLMClient:
             depth=depth,
         )
 
+    async def _stream_opencode(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        max_tokens: Optional[int] = None,
+        depth: int = 0,
+    ) -> AsyncGenerator[str, None]:
+        # OpenCode ne supporte pas le streaming natif, on simule
+        result = await self._generate_opencode(
+            model=model,
+            messages=messages,
+            max_tokens=max_tokens,
+            depth=depth,
+        )
+        if result:
+            # Simuler le streaming en envoyant par chunks
+            chunk_size = 50
+            for i in range(0, len(result), chunk_size):
+                yield result[i : i + chunk_size]
+
     def stream(
         self,
         model: str,
@@ -1132,6 +1296,10 @@ class LLMClient:
                 )
             case LLMProvider.CUSTOM:
                 return self._stream_custom(
+                    model=model, messages=messages, max_tokens=max_tokens
+                )
+            case LLMProvider.OPENCODE:
+                return self._stream_opencode(
                     model=model, messages=messages, max_tokens=max_tokens
                 )
 
@@ -1517,6 +1685,29 @@ class LLMClient:
             depth=depth,
         )
 
+    async def _stream_opencode_structured(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        response_format: dict,
+        strict: bool = False,
+        max_tokens: Optional[int] = None,
+        depth: int = 0,
+    ) -> AsyncGenerator[str, None]:
+        result = await self._generate_opencode_structured(
+            model=model,
+            messages=messages,
+            response_format=response_format,
+            strict=strict,
+            max_tokens=max_tokens,
+            depth=depth,
+        )
+        if result:
+            json_str = json.dumps(result)
+            chunk_size = 50
+            for i in range(0, len(json_str), chunk_size):
+                yield json_str[i : i + chunk_size]
+
     def stream_structured(
         self,
         model: str,
@@ -1564,6 +1755,14 @@ class LLMClient:
                 )
             case LLMProvider.CUSTOM:
                 return self._stream_custom_structured(
+                    model=model,
+                    messages=messages,
+                    response_format=response_format,
+                    strict=strict,
+                    max_tokens=max_tokens,
+                )
+            case LLMProvider.OPENCODE:
+                return self._stream_opencode_structured(
                     model=model,
                     messages=messages,
                     response_format=response_format,
