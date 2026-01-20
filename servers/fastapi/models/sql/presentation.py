@@ -7,13 +7,16 @@ from sqlmodel import Boolean, Field, SQLModel
 from models.presentation_layout import PresentationLayoutModel
 from models.presentation_outline_model import PresentationOutlineModel
 from models.presentation_structure_model import PresentationStructureModel
+from models.sql.types import UUIDHex
 from utils.datetime_utils import get_current_utc_datetime
 
 
 class PresentationModel(SQLModel, table=True):
     __tablename__ = "presentations"
 
-    id: uuid.UUID = Field(primary_key=True, default_factory=uuid.uuid4)
+    id: uuid.UUID = Field(
+        sa_column=Column(UUIDHex(), primary_key=True), default_factory=uuid.uuid4
+    )
     content: str
     n_slides: int
     language: str

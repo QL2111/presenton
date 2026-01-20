@@ -3,13 +3,19 @@ import uuid
 from sqlalchemy import ForeignKey
 from sqlmodel import Field, Column, JSON, SQLModel
 
+from models.sql.types import UUIDHex
+
 
 class SlideModel(SQLModel, table=True):
     __tablename__ = "slides"
 
-    id: uuid.UUID = Field(primary_key=True, default_factory=uuid.uuid4)
+    id: uuid.UUID = Field(
+        sa_column=Column(UUIDHex(), primary_key=True), default_factory=uuid.uuid4
+    )
     presentation: uuid.UUID = Field(
-        sa_column=Column(ForeignKey("presentations.id", ondelete="CASCADE"), index=True)
+        sa_column=Column(
+            UUIDHex(), ForeignKey("presentations.id", ondelete="CASCADE"), index=True
+        )
     )
     layout_group: str
     layout: str

@@ -4,6 +4,7 @@ import uuid
 from sqlalchemy import Column, DateTime
 from sqlmodel import SQLModel, Field
 
+from models.sql.types import UUIDHex
 from utils.datetime_utils import get_current_utc_datetime
 
 
@@ -11,8 +12,8 @@ class TemplateModel(SQLModel, table=True):
     __tablename__ = "templates"
 
     id: uuid.UUID = Field(
+        sa_column=Column(UUIDHex(), primary_key=True),
         default_factory=uuid.uuid4,
-        primary_key=True,
         description="UUID for the template (matches presentation_id)",
     )
     name: str = Field(description="Human friendly template name")

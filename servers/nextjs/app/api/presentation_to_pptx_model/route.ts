@@ -98,7 +98,7 @@ async function getBrowserAndPage(id: string): Promise<[Browser, Page]> {
   await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
   page.setDefaultNavigationTimeout(300000);
   page.setDefaultTimeout(300000);
-  await page.goto(`http://localhost/pdf-maker?id=${id}`, {
+  await page.goto(`http://localhost:8080/pdf-maker?id=${id}`, {
     waitUntil: "networkidle0",
     timeout: 300000,
   });
@@ -978,7 +978,7 @@ async function getElementAttributes(
       if (borderRadius && borderRadius !== "0px") {
         const radiusParts = borderRadius
           .split(" ")
-          .map((part) => parseFloat(part));
+          .map((part) => Math.round(parseFloat(part)));
         if (radiusParts.length === 1) {
           borderRadiusValue = [
             radiusParts[0],
@@ -1007,8 +1007,8 @@ async function getElementAttributes(
         // Clamp border radius values to be between 0 and half the width/height
         if (borderRadiusValue) {
           const rect = el.getBoundingClientRect();
-          const maxRadiusX = rect.width / 2;
-          const maxRadiusY = rect.height / 2;
+          const maxRadiusX = Math.round(rect.width / 2);
+          const maxRadiusY = Math.round(rect.height / 2);
 
           borderRadiusValue = borderRadiusValue.map((radius, index) => {
             // For top-left and bottom-right corners, use maxRadiusX
