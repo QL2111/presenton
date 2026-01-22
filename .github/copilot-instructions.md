@@ -153,6 +153,40 @@ open http://localhost:8080
 3. **Border Radius Float**: Round CSS pixel values with `Math.round()` in TypeScript
 4. **Permission Denied on Port 80**: Use port 8080 for rootless Podman
 
+## Custom Template Storage & Editing
+
+### Storage Options
+1. **Database (SQLite)**: Custom templates uploaded via `/custom-template` are stored in `app_data/fastapi.db`
+   - Tables: `templates` (metadata), `presentation_layout_codes` (TSX code)
+   - Compiled dynamically in browser via `compileCustomLayout()`
+
+2. **Static Files**: Templates in `servers/nextjs/presentation-templates/` are loaded directly
+   - Each template = folder with `.tsx` files + `settings.json`
+   - Easier to edit and version control
+
+### Export Script
+Export DB templates to static files for editing:
+```bash
+python scripts/export_custom_template.py <presentation_id> [output_dir]
+# Example:
+python scripts/export_custom_template.py 6516c707-6e9d-4456-a573-f0b0d85080f2
+# Creates: servers/nextjs/presentation-templates/custom-6516c707/
+```
+
+### Template TSX Structure
+Each layout file must export:
+- `Schema`: Zod schema defining data structure with defaults
+- `default`: React component receiving `{ data }` prop
+- `layoutId`, `layoutName`, `layoutDescription`: Metadata strings
+
+### Common Layout Issues (AI-Generated)
+When editing AI-generated layouts, watch for:
+1. **Element Overlapping**: Fix with proper `z-index`, `position`, padding/margin
+2. **Text Overflow**: Add `overflow-hidden`, `text-ellipsis`, `line-clamp-*`
+3. **Missing Defaults**: Ensure all Schema fields have `.default()` values
+4. **Hardcoded Sizes**: Use relative units (`%`, `aspect-ratio`) over fixed `px`
+5. **Font Issues**: Verify font-family exists or use fallbacks
+
 ## Improvement Areas (Template Upload)
 
 1. **HTML Conversion Quality**: Improve LLM prompts for better fidelity
