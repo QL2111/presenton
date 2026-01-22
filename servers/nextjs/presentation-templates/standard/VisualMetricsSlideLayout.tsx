@@ -172,8 +172,6 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
                         })}
                     </div>
                 </div>
-
-                {/* mermaid removed */}
             </div>
         </>
     )

@@ -117,7 +117,6 @@ const Schema = z.object({
     chartType: z.enum(["none","bar","line","pie","donut"]).default("none"),
     data: z.array(z.object({ name: z.string().default("A"), value: z.number().default(0) })).min(0).max(20).default([])
   }).default({ chartType: "none", data: [] }),
-  mermaid: z.object({ code: z.string().default("graph TD; A-->B;") }).default({ code: "graph TD; A-->B;" })
 })
 
 type SlideData = z.infer<typeof Schema>
@@ -143,7 +142,6 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
     footerLogoCircle: footerIcon,
     bottomGradient,
     chart,
-    mermaid,
   } = parsed;
 
   return (
@@ -265,12 +263,6 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
                 </PieChart>
               </div>
             )}
-          </div>
-        ) : null}
-
-        {mermaid?.code ? (
-          <div className="absolute left-[6%] top-[6%] w-[40%]">
-            <div className="mermaid">{mermaid?.code}</div>
           </div>
         ) : null}
       </div>

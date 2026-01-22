@@ -81,13 +81,6 @@ const Schema = z.object({
     "data": []
   }).meta({
     description: "Optional chart data and type"
-  }),
-  mermaid: z.object({
-    "code": z.string().default("graph TD; A-->B;")
-  }).default({
-    "code": "graph TD; A-->B;"
-  }).meta({
-    description: "Mermaid diagram code placeholder"
   })
 })
 
@@ -111,7 +104,6 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
   const pageNumber = parsedData.pageNumber
   const decorativeRule = parsedData.decorativeRule
   const chart = parsedData.chart
-  const mermaid = parsedData.mermaid
 
   return (
     <>
