@@ -1,3 +1,6 @@
+import * as React from 'react';
+import { z } from 'zod'
+
 const ImageSchema = z.object({
   __image_url__: z.string().url().default("https://images.pexels.com/photos/31527637/pexels-photo-31527637.jpeg").meta({
     description: "URL to image",
@@ -19,17 +22,17 @@ const IconSchema = z.object({
 const layoutId = "three-column-thumbnails-cards-slide"
 const layoutName = "dynamicSlideLayout"
 const layoutDescription = "A slide with a header, three thumbnails, and white rounded cards."
+type BulletItem = {
+  text: string;
+  children: BulletItem[];
+};
 
-const BulletItemSchema = z.lazy(() =>
+const BulletItemSchema: z.ZodType<BulletItem> = z.lazy(() =>
   z.object({
-    text: z.string().min(6).max(160).default("Cliquez pour modifier le texte").meta({
-      description: "Bullet text content. Max 20 words",
-    }),
-    children: z.array(BulletItemSchema).min(0).max(3).default([]).meta({
-      description: "Nested bullet items. Conservative depth",
-    }),
+    text: z.string().min(6).max(160).default("Cliquez pour modifier le texte"),
+    children: z.array(BulletItemSchema).min(0).max(3).default([]),
   })
-)
+);
 
 const ColumnSchema = z.object({
   thumbnail: ImageSchema.default({
@@ -272,3 +275,6 @@ const dynamicSlideLayout: React.FC<ThreeColumnThumbnailsCardsLayoutProps> = ({ d
     </>
   )
 }
+
+export default dynamicSlideLayout
+export { Schema, layoutId, layoutName, layoutDescription }

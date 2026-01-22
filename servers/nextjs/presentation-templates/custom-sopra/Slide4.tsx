@@ -1,3 +1,7 @@
+import * as React from 'react';
+import { z } from 'zod'
+import { BarChart, Bar, XAxis, YAxis, LineChart, Line, PieChart, Pie } from 'recharts'
+
 const ImageSchema = z.object({
   "__image_url__": z.string().url().default("https://images.pexels.com/photos/31527637/pexels-photo-31527637.jpeg"),
   "__image_prompt__": z.string().min(3).max(200).default("Photo placeholder").meta({
@@ -122,20 +126,25 @@ interface SlideLayoutProps {
   data?: Partial<SlideData>
 }
 
+
 const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => {
-  const title = slideData?.title || Schema.shape.title.default
-  const gradient = slideData?.topHeaderGradient || Schema.shape.topHeaderGradient.default
-  const leftTitle = slideData?.leftSectionTitle || Schema.shape.leftSectionTitle.default
-  const infoCard = slideData?.infoCard || Schema.shape.infoCard.default
-  const gallery = slideData?.galleryPhotos || Schema.shape.galleryPhotos.default
-  const important = slideData?.importantBlock || Schema.shape.importantBlock.default
-  const rightTitle = slideData?.rightSectionTitle || Schema.shape.rightSectionTitle.default
-  const usage = slideData?.usageCard || Schema.shape.usageCard.default
-  const rightGallery = slideData?.rightGallery || Schema.shape.rightGallery.default
-  const footerIcon = slideData?.footerLogoCircle || Schema.shape.footerLogoCircle.default
-  const bottomGradient = slideData?.bottomGradient || Schema.shape.bottomGradient.default
-  const chart = slideData?.chart || Schema.shape.chart.default
-  const mermaid = slideData?.mermaid || Schema.shape.mermaid.default
+  // Merge defaults and user data using Zod
+  const parsed = Schema.parse(slideData ?? {});
+  const {
+    title,
+    topHeaderGradient: gradient,
+    leftSectionTitle: leftTitle,
+    infoCard,
+    galleryPhotos: gallery,
+    importantBlock: important,
+    rightSectionTitle: rightTitle,
+    usageCard: usage,
+    rightGallery,
+    footerLogoCircle: footerIcon,
+    bottomGradient,
+    chart,
+    mermaid,
+  } = parsed;
 
   return (
     <>
@@ -266,5 +275,9 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
         ) : null}
       </div>
     </>
-  )
-}
+  );
+};
+
+
+export default dynamicSlideLayout;
+export { Schema, layoutId, layoutName, layoutDescription };

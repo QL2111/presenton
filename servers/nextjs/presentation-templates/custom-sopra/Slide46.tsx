@@ -1,3 +1,6 @@
+import * as React from 'react';
+import { z } from 'zod'
+
 const ImageSchema = z.object({
   "__image_url__": z.string().url().meta({
     description: "URL to image",
@@ -271,17 +274,17 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
                         <div>{bullet?.text}</div>
                         {bullet?.children && bullet.children.length > 0 && (
                           <ul className="mt-2 ml-6 space-y-2 text-[16px] leading-[1.4]">
-                            {bullet.children.map((lvl2, l2Idx) => (
+                            {bullet.children.map((lvl2: any, l2Idx: number) => (
                               <li key={l2Idx}>
                                 {lvl2?.text}
                                 {lvl2?.children && lvl2.children.length > 0 && (
                                   <ul className="mt-2 ml-6 space-y-2 text-[14px] leading-[1.4]">
-                                    {lvl2.children.map((lvl3, l3Idx) => (
+                                    {lvl2.children.map((lvl3: any, l3Idx: number) => (
                                       <li key={l3Idx}>
                                         {lvl3?.text}
                                         {lvl3?.children && lvl3.children.length > 0 && (
                                           <ul className="mt-2 ml-6 text-[13px] leading-[1.4]">
-                                            {lvl3.children.map((lvl4, l4Idx) => (
+                                            {lvl3.children.map((lvl4: any, l4Idx: number) => (
                                               <li key={l4Idx}>{lvl4?.text}</li>
                                             ))}
                                           </ul>
@@ -328,3 +331,6 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
     </>
   );
 };
+
+export default dynamicSlideLayout
+export { Schema, layoutId, layoutName, layoutDescription }

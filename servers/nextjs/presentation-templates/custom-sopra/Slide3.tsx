@@ -1,3 +1,7 @@
+import React from 'react'
+import { z } from 'zod'
+import { BarChart, Bar, XAxis, YAxis, LineChart, Line, PieChart, Pie } from 'recharts'
+
 const ImageSchema = z.object({
   "__image_url__": z.string().url().default("https://images.pexels.com/photos/31527637/pexels-photo-31527637.jpeg"),
   "__image_prompt__": z.string().min(3).max(200).default("Abstract corporate gradient background").meta({
@@ -139,19 +143,8 @@ interface SlideLayoutProps {
 }
 
 const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => {
-  const title = slideData?.title || Schema.shape.title.default
-  const gradientClasses = slideData?.topHeaderGradient || Schema.shape.topHeaderGradient.default
-  const important = slideData?.importantCard || Schema.shape.importantCard.default
-  const tahoma = slideData?.tahomaBlock || Schema.shape.tahomaBlock.default
-  const typography = slideData?.typographySample || Schema.shape.typographySample.default
-  const pageNumber = slideData?.pageNumber || Schema.shape.pageNumber.default
-  const colors = slideData?.colorsSection || Schema.shape.colorsSection.default
-  const gradientBar = slideData?.gradientBar || Schema.shape.gradientBar.default
-  const previews = slideData?.previewImages || Schema.shape.previewImages.default
-  const footerLogo = slideData?.footerLogo || Schema.shape.footerLogo.default
-  const footerLogoCircle = slideData?.footerLogoCircle || Schema.shape.footerLogoCircle.default
-  const chart = slideData?.chart || Schema.shape.chart.default
-  const mermaid = slideData?.mermaid || Schema.shape.mermaid.default
+  const parsedData = Schema.parse(slideData || {});
+  const { title, topHeaderGradient: gradientClasses, importantCard: important, tahomaBlock: tahoma, typographySample: typography, pageNumber, colorsSection: colors, gradientBar, previewImages: previews, footerLogo, footerLogoCircle, chart, mermaid } = parsedData;
 
   return (
     <>
@@ -308,3 +301,6 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
     </>
   )
 }
+
+export default dynamicSlideLayout;
+export { Schema, layoutId, layoutName, layoutDescription };

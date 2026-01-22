@@ -1,3 +1,6 @@
+import * as React from 'react';
+import { z } from 'zod'
+
 const IconSchema = z.object({
   __icon_url__: z.string().default("").meta({
     description: "URL to icon",
@@ -149,3 +152,6 @@ const dynamicSlideLayout: React.FC<SummaryFourColumnLayoutProps> = ({ data: slid
     </>
   )
 }
+
+export default dynamicSlideLayout
+export { Schema, layoutId, layoutName, layoutDescription }

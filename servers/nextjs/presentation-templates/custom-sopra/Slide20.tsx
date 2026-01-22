@@ -1,3 +1,6 @@
+import * as React from 'react';
+import { z } from 'zod'
+
 const ImageSchema = z.object({
   __image_url__: z.string().url().default("https://images.pexels.com/photos/31527637/pexels-photo-31527637.jpeg").meta({
     description: "URL to image",
@@ -113,3 +116,6 @@ const dynamicSlideLayout: React.FC<FramedImageTitleSubtitleLayoutProps> = ({ dat
     </>
   )
 }
+
+export default dynamicSlideLayout
+export { Schema, layoutId, layoutName, layoutDescription }

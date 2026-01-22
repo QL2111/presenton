@@ -1,3 +1,6 @@
+import * as React from 'react';
+import { z } from 'zod'
+
 const ImageSchema = z.object({
   "__image_url__": z.string().url().meta({
     description: "URL to image",
@@ -95,3 +98,6 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
     </>
   );
 };
+
+export default dynamicSlideLayout
+export { Schema, layoutId, layoutName, layoutDescription }

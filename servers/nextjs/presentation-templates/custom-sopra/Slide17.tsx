@@ -1,3 +1,39 @@
+// --- Bullet types and schemas ---
+// --- Bullet types and schemas ---
+type BulletLevel3 = { text: string };
+type BulletLevel2 = { text: string; children: BulletLevel3[] };
+type BulletLevel1 = { text: string; children: BulletLevel2[] };
+
+const BulletLevel3Schema: z.ZodType<BulletLevel3> = z.object({
+  text: z.string().min(8).max(40).default("Quatrième niveau").meta({
+    description: "Level 3 bullet text. Max 7 words",
+    maxWords: 7,
+  }),
+});
+
+const BulletLevel2Schema: z.ZodType<BulletLevel2> = z.object({
+  text: z.string().min(10).max(60).default("Troisième niveau").meta({
+    description: "Level 2 bullet text. Max 10 words",
+    maxWords: 10,
+  }),
+  children: z.array(BulletLevel3Schema).min(0).max(3).default([]).meta({
+    description: "Level 3 bullets nested under level 2. Max 3 items",
+  }),
+});
+
+const BulletLevel1Schema: z.ZodType<BulletLevel1> = z.object({
+  text: z.string().min(12).max(80).default("Deuxième niveau").meta({
+    description: "Level 1 bullet text. Max 12 words",
+    maxWords: 12,
+  }),
+  children: z.array(BulletLevel2Schema).min(0).max(3).default([]).meta({
+    description: "Level 2 bullets nested under level 1. Max 3 items",
+  }),
+});
+// ...existing code...
+import * as React from 'react';
+import { z } from 'zod'
+
 const IconSchema = z.object({
   __icon_url__: z.string().default("").meta({
     description: "URL to icon",
@@ -8,45 +44,12 @@ const IconSchema = z.object({
   }),
 })
 
-const BulletLevel3Schema = z.object({
-  text: z.string().min(8).max(40).default("Quatrième niveau").meta({
-    description: "Level 3 bullet text. Max 7 words",
-    maxWords: 7,
-  }),
-})
-
-const BulletLevel2Schema = z.object({
-  text: z.string().min(10).max(60).default("Troisième niveau").meta({
-    description: "Level 2 bullet text. Max 10 words",
-    maxWords: 10,
-  }),
-  children: z.array(BulletLevel3Schema).min(0).max(3).default([]).meta({
-    description: "Level 3 bullets nested under level 2. Max 3 items",
-  }),
-})
-
-const BulletLevel1Schema = z.object({
-  text: z.string().min(12).max(80).default("Deuxième niveau").meta({
-    description: "Level 1 bullet text. Max 12 words",
-    maxWords: 12,
-  }),
-  children: z.array(BulletLevel2Schema).min(0).max(3).default([
-    {
-      text: "Troisième niveau",
-      children: [
-        {
-          text: "Quatrième niveau",
-        },
-      ],
-    },
-  ]).meta({
-    description: "Level 2 bullets nested under level 1. Max 3 items",
-  }),
-})
 
 const layoutId = "header-subtitle-nested-bullets-slide"
 const layoutName = "dynamicSlideLayout"
 const layoutDescription = "A slide with a header, subtitle, and nested bulleted list with footer items."
+
+
 
 const Schema = z.object({
   title: z.string().min(10).max(60).default("Cliquez pour modifier le titre 1").meta({
@@ -57,7 +60,7 @@ const Schema = z.object({
     description: "Subtitle text under the heading. Max 20 words",
     maxWords: 20,
   }),
-  bullets: z.array(BulletLevel1Schema).min(1).max(6).default([
+  bullets: z.array(BulletLevel1Schema).min(1).max(6).default(() => [
     {
       text: "Cliquez pour modifier le texte",
       children: [
@@ -67,15 +70,13 @@ const Schema = z.object({
             {
               text: "Troisième niveau",
               children: [
-                {
-                  text: "Quatrième niveau",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
+                { text: "Quatrième niveau" } // BulletLevel3 has only text
+              ]
+            }
+          ]
+        }
+      ]
+    }
   ]).meta({
     description: "Top-level bullets with nested children. Top-level min 1, max 6",
     maxWords: 120,
@@ -95,7 +96,7 @@ const Schema = z.object({
     description: "Footer logo/icon replaced with circle 'i'.",
     maxWords: 1,
   }),
-})
+});
 
 type HeaderSubtitleNestedBulletsSlideData = z.infer<typeof Schema>
 
@@ -104,22 +105,25 @@ interface HeaderSubtitleNestedBulletsLayoutProps {
 }
 
 const dynamicSlideLayout: React.FC<HeaderSubtitleNestedBulletsLayoutProps> = ({ data: slideData }) => {
-  const bullets = slideData?.bullets || Schema.shape.bullets.default
-  const renderLevel3 = (items?: typeof bullets[0]["children"][0]["children"]) => {
-    if (!items || items.length === 0) return null
-    return items.map((it, i) => (
+  // Get default bullets using Zod's API
+  // Use Zod's parse(undefined) to get default value for bullets
+  const bullets: BulletLevel1[] = slideData?.bullets ?? Schema.shape.bullets.parse(undefined);
+
+  const renderLevel3 = (items?: BulletLevel3[]) => {
+    if (!items || items.length === 0) return null;
+    return items.map((it: BulletLevel3, i: number) => (
       <li key={i} className="flex items-start ml-[18px]">
         <span className="flex-shrink-0 mt-1 w-[5px] h-[5px] rounded-full bg-[#000000] mr-4" aria-hidden="true"></span>
         <div className="font-['Tahoma'] text-[15px] leading-[1.2] text-[#111111]">
           {it?.text}
         </div>
       </li>
-    ))
-  }
+    ));
+  };
 
-  const renderLevel2 = (items?: typeof bullets[0]["children"]) => {
-    if (!items || items.length === 0) return null
-    return items.map((it, i) => (
+  const renderLevel2 = (items?: BulletLevel2[]) => {
+    if (!items || items.length === 0) return null;
+    return items.map((it: BulletLevel2, i: number) => (
       <li key={i} className="flex items-start mb-2">
         <span className="flex-shrink-0 mt-1 w-[6px] h-[6px] rounded-full bg-[#000000] mr-4" aria-hidden="true"></span>
         <div className="font-['Tahoma'] text-[18px] leading-[1.2] text-[#111111]">
@@ -131,11 +135,12 @@ const dynamicSlideLayout: React.FC<HeaderSubtitleNestedBulletsLayoutProps> = ({ 
           </ul>
         ) : null}
       </li>
-    ))
-  }
+    ));
+  };
 
-  const renderLevel1 = (items?: typeof bullets) => {
-    return items?.map((it, idx) => (
+  // Render BulletLevel1[]
+  const renderLevel1 = (items?: BulletLevel1[]) => {
+    return items?.map((it: BulletLevel1, idx: number) => (
       <li key={idx} className="ml-[34px] mb-2">
         <div className="flex items-start">
           <span className="flex-shrink-0 mt-1 w-2 h-2 rounded-full bg-[#000000] mr-4" aria-hidden="true"></span>
@@ -149,8 +154,27 @@ const dynamicSlideLayout: React.FC<HeaderSubtitleNestedBulletsLayoutProps> = ({ 
           </ul>
         ) : null}
       </li>
-    )) || null
-  }
+    )) || null;
+  };
+
+  // Render BulletLevel2[]
+  const renderLevel2asLevel1 = (items?: BulletLevel2[]) => {
+    return items?.map((it: BulletLevel2, idx: number) => (
+      <li key={idx} className="ml-[34px] mb-2">
+        <div className="flex items-start">
+          <span className="flex-shrink-0 mt-1 w-2 h-2 rounded-full bg-[#000000] mr-4" aria-hidden="true"></span>
+          <div className="font-['Tahoma'] text-[21px] leading-[1.2] text-[#111111]">
+            {it?.text}
+          </div>
+        </div>
+        {it?.children && it.children.length > 0 ? (
+          <ul className="mt-3 ml-[44px]">
+            {renderLevel3(it.children)}
+          </ul>
+        ) : null}
+      </li>
+    )) || null;
+  };
 
   return (
     <>
@@ -177,7 +201,7 @@ const dynamicSlideLayout: React.FC<HeaderSubtitleNestedBulletsLayoutProps> = ({ 
                 </li>
 
                 {/* Level 1 */}
-                {renderLevel1(bullets?.[0]?.children ? bullets[0].children : bullets?.slice(1))}
+                {renderLevel2asLevel1(bullets[0]?.children)}
               </ul>
 
               {/* 
@@ -211,3 +235,6 @@ const dynamicSlideLayout: React.FC<HeaderSubtitleNestedBulletsLayoutProps> = ({ 
     </>
   )
 }
+
+export default dynamicSlideLayout
+export { Schema, layoutId, layoutName, layoutDescription }

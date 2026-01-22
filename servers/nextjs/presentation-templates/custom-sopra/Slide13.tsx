@@ -1,3 +1,6 @@
+import * as React from 'react';
+import { z } from 'zod'
+
 const IconSchema = z.object({
   __icon_url__: z.string().default("").meta({
     description: "URL to icon",
@@ -68,7 +71,11 @@ interface SummarySixColumnLayoutProps {
 }
 
 const dynamicSlideLayout: React.FC<SummarySixColumnLayoutProps> = ({ data: slideData }) => {
-  const items = slideData?.items && slideData?.items.length === 6 ? slideData.items : Schema.shape.items.default
+  // Always get items as array, using Zod's parse(undefined) for default
+  const items: { number: string; caption: string }[] =
+    slideData?.items && slideData?.items.length === 6
+      ? slideData.items
+      : Schema.shape.items.parse(undefined);
   return (
     <>
       <div className="relative w-full rounded-sm max-w-[1280px] shadow-lg max-h-[720px] aspect-video bg-white relative z-20 mx-auto overflow-hidden">
@@ -86,14 +93,14 @@ const dynamicSlideLayout: React.FC<SummarySixColumnLayoutProps> = ({ data: slide
           </div>
 
           <div className="mt-12 grid grid-cols-6 gap-x-8 gap-y-8">
-            {items.map((col, idx) => (
+            {items.map((col: { number: string; caption: string }, idx: number) => (
               <div key={idx} className="flex flex-col items-start">
                 <div className="font-['Tahoma'] text-[#2a1449] text-[72px] font-semibold leading-none">
                   {col?.number}
                 </div>
                 <div className="mt-4 w-[56px] h-[4px] bg-[#6b1f6d]"></div>
                 <p className="mt-4 font-['Tahoma'] text-[20px] text-[#111] leading-snug max-w-[220px]">
-                  {(col?.caption || "Cliquez pour\nmodifier le titre").split("\n").map((line, i, arr) => (
+                  {(col?.caption || "Cliquez pour\nmodifier le titre").split("\n").map((line: string, i: number, arr: string[]) => (
                     <span key={i}>
                       {line}
                       {i < arr.length - 1 ? <br /> : null}
@@ -136,3 +143,6 @@ const dynamicSlideLayout: React.FC<SummarySixColumnLayoutProps> = ({ data: slide
     </>
   )
 }
+
+export default dynamicSlideLayout
+export { Schema, layoutId, layoutName, layoutDescription }

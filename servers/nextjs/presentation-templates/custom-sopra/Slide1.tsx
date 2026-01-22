@@ -1,3 +1,7 @@
+import React from 'react'
+import { z } from 'zod'
+import { BarChart, Bar, XAxis, YAxis, LineChart, Line, PieChart, Pie } from 'recharts'
+
 const ImageSchema = z.object({
   "__image_url__": z.string().url().default("https://images.pexels.com/photos/31527637/pexels-photo-31527637.jpeg"),
   "__image_prompt__": z.string().min(3).max(200).default("Abstract colorful gradient background").meta({
@@ -94,17 +98,20 @@ interface SlideLayoutProps {
 }
 
 const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => {
-  const title = slideData?.title || Schema.shape.title.default
-  const subtitle = slideData?.subtitle || Schema.shape.subtitle.default
-  const slogan = slideData?.slogan || Schema.shape.slogan.default
-  const bg = slideData?.backgroundImage || Schema.shape.backgroundImage.default
-  const topRightLogo = slideData?.topRightLogo || Schema.shape.topRightLogo.default
-  const footerLogo = slideData?.footerLogo || Schema.shape.footerLogo.default
-  const footerText = slideData?.footerText || Schema.shape.footerText.default
-  const pageNumber = slideData?.pageNumber || Schema.shape.pageNumber.default
-  const decorativeRule = slideData?.decorativeRule || Schema.shape.decorativeRule.default
-  const chart = slideData?.chart || Schema.shape.chart.default
-  const mermaid = slideData?.mermaid || Schema.shape.mermaid.default
+  // Parse the data with defaults
+  const parsedData = Schema.parse(slideData || {})
+  
+  const title = parsedData.title
+  const subtitle = parsedData.subtitle
+  const slogan = parsedData.slogan
+  const bg = parsedData.backgroundImage
+  const topRightLogo = parsedData.topRightLogo
+  const footerLogo = parsedData.footerLogo
+  const footerText = parsedData.footerText
+  const pageNumber = parsedData.pageNumber
+  const decorativeRule = parsedData.decorativeRule
+  const chart = parsedData.chart
+  const mermaid = parsedData.mermaid
 
   return (
     <>
@@ -194,14 +201,10 @@ const dynamicSlideLayout: React.FC<SlideLayoutProps> = ({ data: slideData }) => 
           </div>
         ) : null}
 
-        {mermaid?.code ? (
-          <div className="absolute left-[6%] top-[6%] w-[40%]">
-            <div className="mermaid">
-              {mermaid?.code}
-            </div>
-          </div>
-        ) : null}
       </div>
     </>
   )
 }
+
+export default dynamicSlideLayout
+export { Schema, layoutId, layoutName, layoutDescription }

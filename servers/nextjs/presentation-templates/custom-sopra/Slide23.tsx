@@ -1,3 +1,6 @@
+import * as React from 'react';
+import { z } from 'zod'
+
 const ImageSchema = z.object({
   __image_url__: z.string().url().default("https://images.pexels.com/photos/31527637/pexels-photo-31527637.jpeg").meta({
     description: "URL to image",
@@ -19,20 +22,19 @@ const IconSchema = z.object({
 const layoutId = "top-framed-image-two-cards-slide"
 const layoutName = "dynamicSlideLayout"
 const layoutDescription = "A slide with a top framed image, header, subtitle, and two cards side-by-side."
+type BulletItem = {
+  text: string;
+  markerColor: string;
+  children: BulletItem[];
+};
 
-const BulletItemSchema = z.lazy(() =>
+const BulletItemSchema: z.ZodType<BulletItem> = z.lazy(() =>
   z.object({
-    text: z.string().min(1).max(160).default("Cliquez pour modifier le texte").meta({
-      description: "Bullet text content. Max 20 words",
-    }),
-    markerColor: z.string().default("#cf022b").meta({
-      description: "Hex color for the bullet marker",
-    }),
-    children: z.array(z.lazy(() => BulletItemSchema)).min(0).max(3).default([]).meta({
-      description: "Nested bullet items",
-    }),
+    text: z.string().min(1).max(160).default("Cliquez pour modifier le texte"),
+    markerColor: z.string().default("#cf022b"),
+    children: z.array(BulletItemSchema).min(0).max(3).default([]),
   })
-)
+);
 
 const CardSchema = z.object({
   heading: z.string().min(6).max(32).default("Modifiez texte").meta({
@@ -325,3 +327,6 @@ const dynamicSlideLayout: React.FC<TopFramedImageTwoCardsLayoutProps> = ({ data:
     </>
   )
 }
+
+export default dynamicSlideLayout
+export { Schema, layoutId, layoutName, layoutDescription }
