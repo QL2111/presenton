@@ -160,3 +160,7 @@ open http://localhost:8080
 3. **Performance**: Parallelize slide conversions where possible
 4. **Reliability**: Enhanced error handling and retry logic
 5. **Preview**: Live preview before saving template
+
+## OpenCode API Notes
+
+OpenCode uses a custom API (not OpenAI-compatible) via `/session/:id/message`. Images are sent as `FilePartInput` with `type: "file"`, `mime: "image/png"`, and `url` containing a data URL (`data:image/png;base64,...`). The `LLMClient` in `services/llm_client.py` handles the conversion from standard `LLMMessage` format to OpenCode's `parts` format.

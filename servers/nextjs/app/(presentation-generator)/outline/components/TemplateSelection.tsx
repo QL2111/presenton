@@ -53,12 +53,13 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
     if (templates.length === 0) return [];
 
     const Templates: Template[] = templates
-      .filter((templateID: string) => {
-        // Filter out template that contain any errored layouts (from custom templates compile/parse errors)
-        const fullData = getFullDataByTemplateID(templateID);
-        const hasErroredLayouts = fullData.some((fd: any) => (fd as any)?.component?.displayName === "CustomTemplateErrorSlide");
-        return !hasErroredLayouts;
-      })
+      // TODO: Re-enable filter after debugging custom template issues
+      // .filter((templateID: string) => {
+      //   // Filter out template that contain any errored layouts (from custom templates compile/parse errors)
+      //   const fullData = getFullDataByTemplateID(templateID);
+      //   const hasErroredLayouts = fullData.some((fd: any) => (fd as any)?.component?.displayName === "CustomTemplateErrorSlide");
+      //   return !hasErroredLayouts;
+      // })
       .map(templateID => {
         const settings = getTemplateSetting(templateID);
         const customMeta = summaryMap[templateID];

@@ -207,6 +207,35 @@ class LLMClient:
             message for message in messages if not isinstance(message, LLMSystemMessage)
         ]
 
+    def _get_openai_messages(self, messages: List[LLMMessage]) -> List[dict]:
+        """Convertit les messages LLM au format OpenAI (gère les images)"""
+        from models.llm_message import LLMTextContent, LLMImageContent
+
+        result = []
+        for message in messages:
+            if isinstance(message, LLMUserMessage):
+                if isinstance(message.content, str):
+                    result.append({"role": "user", "content": message.content})
+                else:
+                    # Contenu mixte (texte + images)
+                    content_parts = []
+                    for part in message.content:
+                        if isinstance(part, LLMTextContent):
+                            content_parts.append({"type": "text", "text": part.text})
+                        elif isinstance(part, LLMImageContent):
+                            content_parts.append(
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:{part.mime};base64,{part.data}"
+                                    },
+                                }
+                            )
+                    result.append({"role": "user", "content": content_parts})
+            else:
+                result.append(message.model_dump())
+        return result
+
     # ? Generate Unstructured Content
     async def _generate_openai(
         self,
@@ -220,7 +249,7 @@ class LLMClient:
         client: AsyncOpenAI = self._client
         response = await client.chat.completions.create(
             model=model,
-            messages=[message.model_dump() for message in messages],
+            messages=self._get_openai_messages(messages),
             max_completion_tokens=max_tokens,
             tools=tools,
             extra_body=extra_body,
@@ -426,6 +455,8 @@ class LLMClient:
 
     def _build_opencode_messages(self, messages: List[LLMMessage]) -> List[dict]:
         """Convertit les messages LLM au format OpenCode (parts)"""
+        from models.llm_message import LLMTextContent, LLMImageContent
+
         parts = []
         system_prompt = self._get_system_prompt(messages)
 
@@ -441,7 +472,21 @@ class LLMClient:
             if isinstance(message, LLMSystemMessage):
                 continue  # Déjà traité
             elif isinstance(message, LLMUserMessage):
-                parts.append({"type": "text", "text": f"User: {message.content}"})
+                if isinstance(message.content, str):
+                    parts.append({"type": "text", "text": f"User: {message.content}"})
+                else:
+                    # Contenu mixte (texte + images)
+                    for part in message.content:
+                        if isinstance(part, LLMTextContent):
+                            parts.append({"type": "text", "text": f"User: {part.text}"})
+                        elif isinstance(part, LLMImageContent):
+                            parts.append(
+                                {
+                                    "type": "file",
+                                    "mime": part.mime,
+                                    "url": f"data:{part.mime};base64,{part.data}",
+                                }
+                            )
             elif isinstance(
                 message,
                 (

@@ -1,4 +1,4 @@
-from typing import Any, List, Literal, Optional
+from typing import Any, List, Literal, Optional, Union
 from pydantic import BaseModel
 from google.genai.types import Content as GoogleContent
 
@@ -9,9 +9,23 @@ class LLMMessage(BaseModel):
     pass
 
 
+class LLMTextContent(BaseModel):
+    type: Literal["text"] = "text"
+    text: str
+
+
+class LLMImageContent(BaseModel):
+    type: Literal["image"] = "image"
+    mime: str  # e.g., "image/png"
+    data: str  # base64 encoded image data (without data: prefix)
+
+
+LLMContentPart = Union[LLMTextContent, LLMImageContent]
+
+
 class LLMUserMessage(LLMMessage):
     role: Literal["user"] = "user"
-    content: str
+    content: Union[str, List[LLMContentPart]]
 
 
 class LLMSystemMessage(LLMMessage):
