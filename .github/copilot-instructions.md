@@ -29,6 +29,30 @@ presenton/
 └── nginx.conf           # Reverse proxy configuration
 ```
 
+## Data Storage (`app_data/`)
+
+Toutes les données persistantes sont stockées dans `/home/qlim/work/presenton/app_data/` :
+
+| Chemin | Contenu |
+|--------|---------|
+| `app_data/fastapi.db` | Base SQLite (présentations, slides, templates, métadonnées) |
+| `app_data/images/` | Images générées par l'IA (organisées par `presentation_id`) |
+| `app_data/exports/` | Fichiers PPTX/PDF exportés |
+| `app_data/uploads/` | Documents uploadés par l'utilisateur (PDF, DOCX) |
+| `app_data/fonts/` | Polices custom uploadées |
+
+**Accès rapide :**
+```bash
+# Ouvrir le dossier des données
+cd /home/qlim/work/presenton/app_data
+
+# Voir la base SQLite
+sqlite3 app_data/fastapi.db ".tables"
+
+# Lister les présentations
+sqlite3 app_data/fastapi.db "SELECT id, title FROM presentations LIMIT 10;"
+```
+
 ## Tech Stack
 
 ### Frontend (Next.js)
@@ -146,12 +170,37 @@ open http://localhost:8080
 - **React**: Functional components with hooks, avoid class components
 - **API**: RESTful conventions, proper error handling with HTTPException
 
+
 ## Common Issues & Solutions
 
 1. **UUID Format Mismatch**: Use `UUIDHex` TypeDecorator for SQLite compatibility
 2. **Puppeteer URLs**: Must use port 8080 (nginx) not 3000 (direct Next.js)
 3. **Border Radius Float**: Round CSS pixel values with `Math.round()` in TypeScript
 4. **Permission Denied on Port 80**: Use port 8080 for rootless Podman
+
+---
+
+## Debugging Dynamic Template Artifacts (Database)
+
+**Problème** : Les erreurs persistantes (ex: `Schema.shape.mermaid is undefined`) peuvent provenir de templates stockés dynamiquement dans la base SQLite (`presentation_layout_codes`).
+
+**Symptômes** :
+- Erreur Next.js liée à une propriété supprimée dans le code source, mais toujours présente dans le rendu dynamique.
+- Nettoyage du code et du cache inefficace.
+
+**Solution** :
+1. Rechercher les références obsolètes dans la base :
+   ```sql
+   SELECT id, layout_name FROM presentation_layout_codes WHERE layout_code LIKE '%mermaid%';
+   ```
+2. Mettre à jour ou supprimer les artefacts :
+   ```sql
+   UPDATE presentation_layout_codes SET layout_code = REPLACE(layout_code, 'mermaid', '') WHERE layout_code LIKE '%mermaid%';
+   ```
+   Ou supprimer l'entrée si nécessaire.
+3. Redémarrer le conteneur pour recharger le code dynamique.
+
+**Conseil** : Toujours vérifier la base après modification des templates ou des schémas utilisés dynamiquement.
 
 ## Custom Template Storage & Editing
 

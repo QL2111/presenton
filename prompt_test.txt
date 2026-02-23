@@ -1,0 +1,113 @@
+# Rôle
+Tu es un Consultant Senior en Stratégie Digitale et Expert en Design de Présentation. Ta mission est de structurer une présentation PowerPoint de haut niveau (C-Level) sur le succès commercial et l'écosystème de "League of Legends" (LoL).
+
+# Objectif
+Créer le plan détaillé (texte, structure, idées visuelles) pour une présentation de 12 slides. Le ton doit être analytique, professionnel et orienté "Business & Investissement".
+
+# Charte Graphique & Design System
+*   **Thème :** "Hextech Corporate" (Épuré, Futuriste, Premium).
+*   **Palette de couleurs :**
+    *   Fond : Blanc Pur (#FFFFFF) ou Bleu Nuit profond (#091428) pour les slides de transition.
+    *   Texte : Gris Anthracite (#1A1A1A).
+    *   Accent Principal : Or Prestige (#C8AA6E) pour les données clés.
+    *   Accent Secondaire : Bleu Magique (#0AC8B9) pour les éléments graphiques.
+*   **Typographie :** Sans-serif, géométrique et lisible (ex: Roboto, Montserrat).
+*   **Idée d'animation globale :** Transitions "Morph" (Métamorphose) fluides entre les slides. Apparition des éléments en cascade (Fade in + translation vers le haut).
+
+# Structure des Slides (Contenu requis)
+
+## Slide 1 : Titre
+*   **Titre :** League of Legends : Étude d'un Écosystème Numérique
+*   **Sous-titre :** De Jeu Vidéo à Empire Transmédia
+*   **Visuel :** Logo Riot Games discret, fond Bleu Nuit avec des lignes géométriques dorées fines.
+
+## Slide 2 : Executive Summary (Le Produit)
+*   **Layout :** 2 Colonnes (Texte / Image).
+*   **Contenu :**
+    *   Définition : MOBA (Multiplayer Online Battle Arena).
+    *   Développeur : Riot Games (Filiale de Tencent Holdings).
+    *   Lancement : 2009.
+    *   Modèle : "Game as a Service" (GaaS) avec mises à jour bi-mensuelles.
+*   **Visuel :** Capture d'écran stylisée de la carte "Faille de l'invocateur".
+
+## Slide 3 : KPI & Traction (Données Clés)
+*   **Layout :** 3 "Big Numbers" alignés horizontalement.
+*   **Données :**
+    1.  **180M+** : Joueurs Actifs Mensuels (MAU - Est. 2023).
+    2.  **$1.75 Mds** : Revenu Annuel Moyen (Microtransactions).
+    3.  **14 Ans** : De croissance continue.
+*   **Design :** Chiffres en Or Prestige, très gros, police grasse.
+
+## Slide 4 : Modèle Économique (Free-to-Play)
+*   **Titre :** Une Monétisation Éthique et Lucrative
+*   **Points clés (Bullets) :**
+    *   **Zero Pay-to-Win :** Les compétences priment sur l'argent.
+    *   **Skins & Cosmétiques :** Le cœur du revenu (Vente d'apparences virtuelles).
+    *   **Battle Pass :** Système de rétention et revenus récurrents lors d'événements.
+    *   **Système Hextech :** Mécanique de "Loot Box" transparente.
+
+## Slide 5 : Comparatif Concurrentiel (Tableau)
+*   **Titre :** LoL vs Le Marché Esports
+*   **Layout :** Tableau à 3 colonnes (LoL / Dota 2 / CS:GO).
+*   **Comparaisons :**
+    *   **Accessibilité :** Grand Public vs Hardcore (Dota) vs FPS (CS:GO).
+    *   **Structure Pro :** Ligues Franchisées (Stable) vs Circuit Ouvert (Volatile).
+    *   **Revenue Stream :** Diversifié (Média/Jeu) vs Crowdfunding (Dota).
+
+## Slide 6 : L'Écosystème Esports
+*   **Titre :** Une Structure de Sport Traditionnel
+*   **Visuel :** Carte du monde avec les 4 ligues majeures.
+*   **Points clés :**
+    *   **LCS (Amérique du Nord)**
+    *   **LEC (Europe)**
+    *   **LCK (Corée du Sud)**
+    *   **LPL (Chine)**
+*   **Note :** Fonctionnement par franchises (comme la NBA) assurant la sécurité des investisseurs.
+
+## Slide 7 : Audience et Démographie
+*   **Titre :** Qui est le joueur de 2024 ?
+*   **Graphique :** Diagramme en barres.
+*   **Données :**
+    *   **Cœur de cible :** Hommes 18-34 ans.
+    *   **Évolution :** Hausse du public féminin (+5% post-Arcane).
+    *   **Engagement :** Temps de jeu moyen > 8h / semaine.
+
+## Slide 8 : Stratégie Transmédia (Cas "Arcane")
+*   **Titre :** Au-delà du Jeu : Diversification IP
+*   **Layout :** Image de fond (Jinx/Vi) assombrie + Texte blanc.
+*   **Points clés :**
+    *   **Netflix :** Série "Arcane" (Top 1 dans 52 pays).
+    *   **Impact Business :** Acquisition de nouveaux utilisateurs (non-gamers).
+    *   **Musique :** Groupes virtuels (K/DA) générant des millions de streams sur Spotify.
+
+## Slide 9 : Partenariats de Marque (Sponsoring)
+*   **Titre :** L'Attrait pour les Marques Non-Endémiques
+*   **Visuel :** Logos des partenaires.
+*   **Liste :**
+    *   **Luxe :** Louis Vuitton (Skins in-game, Trophée Case).
+    *   **Auto :** Mercedes-Benz (Partenaire mobilité).
+    *   **FMCG :** Coca-Cola, Mastercard.
+*   **Message :** LoL est devenu un canal marketing premium pour les marques lifestyle.
+
+## Slide 10 : Analyse SWOT
+*   **Layout :** Matrice 2x2.
+*   **Contenu :**
+    *   **Forces :** IP mondiale, finances solides, communauté engagée.
+    *   **Faiblesses :** Toxicité des joueurs, courbe d'apprentissage abrupte.
+    *   **Opportunités :** Jeux dérivés (Projet L, MMORPG), Cinéma.
+    *   **Menaces :** Régulations Chine, Gaming Mobile (Wild Rift vs concurrents).
+
+## Slide 11 : Roadmap & Futur
+*   **Titre :** Horizon 2030
+*   **Liste (Timeline) :**
+    *   Expansion de l'univers cinématique.
+    *   Lancement du MMORPG (Projet très attendu).
+    *   E-Sport : Intégration aux Jeux Olympiques (Esports Olympic Games).
+
+## Slide 12 : Conclusion
+*   **Titre :** Key Takeaways
+*   **Layout :** Liste numérotée centrée.
+*   **Résumé :**
+    1.  LoL est plus qu'un jeu, c'est une plateforme culturelle.
+    2.  Le modèle économique est résilient et diversifié.
+    3.  L'Esport garantit une longévité de 10+ années supplémentaires.

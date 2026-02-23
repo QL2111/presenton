@@ -97,8 +97,10 @@ async def generate_ppt_outline(
     response_model = get_presentation_outline_model_with_n_slides(n_slides)
 
     client = LLMClient()
+    print(f"[generate_ppt_outline] LLM Provider: {client.llm_provider}, Model: {model}")
 
     try:
+        print("[generate_ppt_outline] Starting stream_structured...")
         async for chunk in client.stream_structured(
             model,
             get_messages(

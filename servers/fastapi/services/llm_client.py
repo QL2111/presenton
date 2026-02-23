@@ -453,6 +453,64 @@ class LLMClient:
 
     # ========== OPENCODE METHODS ==========
 
+    def _compress_image_for_api(
+        self, image_data: str, mime_type: str = "image/jpeg", max_size_mb: float = 5.0
+    ) -> str:
+        """Compresses image data to prevent 'Request Entity Too Large' errors"""
+        import base64
+        import io
+        from PIL import Image
+
+        # Check current size
+        current_size_mb = len(image_data) / (1024 * 1024)
+        if current_size_mb <= max_size_mb:
+            return image_data  # No compression needed
+
+        print(
+            f"[Image Compression] Current size: {current_size_mb:.2f}MB, compressing..."
+        )
+
+        try:
+            # Decode base64
+            image_bytes = base64.b64decode(image_data)
+            image = Image.open(io.BytesIO(image_bytes))
+
+            # Convert to RGB if necessary (remove alpha channel)
+            if image.mode in ("RGBA", "LA", "P"):
+                image = image.convert("RGB")
+
+            # Resize if too large (max 1280 width)
+            if image.width > 1280:
+                ratio = 1280 / image.width
+                new_height = int(image.height * ratio)
+                image = image.resize((1280, new_height), Image.Resampling.LANCZOS)
+
+            # Compress with quality adjustment
+            output = io.BytesIO()
+            quality = 85
+            while True:
+                output.seek(0)
+                output.truncate(0)
+                image.save(output, format="JPEG", quality=quality, optimize=True)
+                compressed_size_mb = output.tell() / (1024 * 1024)
+
+                if compressed_size_mb <= max_size_mb or quality <= 50:
+                    break
+                quality -= 5
+
+            # Re-encode to base64
+            output.seek(0)
+            compressed_data = base64.b64encode(output.getvalue()).decode("utf-8")
+
+            print(
+                f"[Image Compression] Compressed to: {compressed_size_mb:.2f}MB (quality: {quality}%)"
+            )
+            return compressed_data
+
+        except Exception as e:
+            print(f"[Image Compression] Error: {e}, returning original data")
+            return image_data
+
     def _build_opencode_messages(self, messages: List[LLMMessage]) -> List[dict]:
         """Convertit les messages LLM au format OpenCode (parts)"""
         from models.llm_message import LLMTextContent, LLMImageContent
@@ -480,11 +538,15 @@ class LLMClient:
                         if isinstance(part, LLMTextContent):
                             parts.append({"type": "text", "text": f"User: {part.text}"})
                         elif isinstance(part, LLMImageContent):
+                            # Compress image to prevent 'Request Entity Too Large' errors
+                            compressed_image_data = self._compress_image_for_api(
+                                part.data, part.mime
+                            )
                             parts.append(
                                 {
                                     "type": "file",
                                     "mime": part.mime,
-                                    "url": f"data:{part.mime};base64,{part.data}",
+                                    "url": f"data:{part.mime};base64,{compressed_image_data}",
                                 }
                             )
             elif isinstance(
@@ -523,7 +585,17 @@ class LLMClient:
             "parts": self._build_opencode_messages(messages),
         }
 
-        response = await self._opencode_client.post(url, json=payload, headers=headers)
+        print(f"[OpenCode] POST {url}")
+        print(f"[OpenCode] Model: {model}")
+        try:
+            response = await self._opencode_client.post(
+                url, json=payload, headers=headers
+            )
+            print(f"[OpenCode] Response status: {response.status_code}")
+            print(f"[OpenCode] Response body: {response.text[:1000]}")
+        except Exception as e:
+            print(f"[OpenCode] Request error: {e}")
+            raise
         response.raise_for_status()
 
         data = response.json()
@@ -1739,6 +1811,7 @@ Respond with the JSON object only, no markdown, no explanation.""",
         max_tokens: Optional[int] = None,
         depth: int = 0,
     ) -> AsyncGenerator[str, None]:
+        print("[_stream_opencode_structured] Called")
         result = await self._generate_opencode_structured(
             model=model,
             messages=messages,
@@ -1747,11 +1820,14 @@ Respond with the JSON object only, no markdown, no explanation.""",
             max_tokens=max_tokens,
             depth=depth,
         )
+        print(f"[_stream_opencode_structured] Result: {result is not None}")
         if result:
             json_str = json.dumps(result)
             chunk_size = 50
             for i in range(0, len(json_str), chunk_size):
                 yield json_str[i : i + chunk_size]
+        else:
+            print("[_stream_opencode_structured] No result, yielding nothing")
 
     def stream_structured(
         self,
@@ -1762,6 +1838,7 @@ Respond with the JSON object only, no markdown, no explanation.""",
         tools: Optional[List[type[LLMTool] | LLMDynamicTool]] = None,
         max_tokens: Optional[int] = None,
     ):
+        print(f"[stream_structured] Provider: {self.llm_provider}, Model: {model}")
         parsed_tools = self.tool_calls_handler.parse_tools(tools)
 
         match self.llm_provider:
